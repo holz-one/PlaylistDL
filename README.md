@@ -90,7 +90,7 @@ This project is licensed under the GNU General Public License v3.0 (GPL-3.0). Se
 - Build a script that uses the Meta Data from duckdb for an a player
 
 
-# ========================================================
+# ======================================
 
 ## Cookies
 
