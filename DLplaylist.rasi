@@ -1,0 +1,98 @@
+/**
+ * Author: A. K. Holz
+ * Github: @holz-one
+ * 
+ * Rofi Theme File - Playlist Downloader (Red, White & Black)
+ * Rofi Version: 1.7.3+
+ **/
+
+
+/*****----- Global Properties -----*****/
+* {
+    font:                       "JetBrains Mono Nerd Font 10";
+    background:                 #000000;
+    background-alt:             #121212;
+    background-mid:             #242424;
+    foreground:                 #FFFFFF;
+    selected:                   #FF0033;
+    active:                     #FF0033;
+    urgent:                     #E60000;
+}
+
+/*****----- Main Window -----*****/
+window {
+    transparency:               "real";
+    location:                   center;
+    anchor:                     center;
+    fullscreen:                 false;
+    width:                      700px;
+    height:			390px;
+
+    enabled:                    true;
+    border:                     2px solid;
+    border-color:               @selected;
+    border-radius:              8px;
+    cursor:                     "default";
+    background-color:           @background;
+}
+
+/*****----- Main Box -----*****/
+mainbox {
+    enabled:                    true;
+    spacing:                    0px;
+    background-color:           transparent;
+    orientation:                vertical;
+    children:                   [ "inputbar", "listbox" ];
+}
+
+listbox {
+    spacing:                    0px;
+    padding:                    0px;
+    background-color:           transparent;
+    orientation:                vertical;
+    children:                   [ "listview" ];
+}
+
+/*****----- Inputbar / Banner Image Header -----*****/
+inputbar {
+    enabled:                    true;
+    spacing:                    10px;
+    /* Large top padding expands the header area to show your 1406x786 image */
+    padding:                    320px 15px 15px;
+    background-color:           transparent;
+    /* Uses portable relative pathing for GitHub repository compatibility */
+    background-image:           url("DLplaylist.png", width);
+    text-color:                 @foreground;
+    orientation:                horizontal;
+    children:                   [ "prompt", "entry" ];
+}
+
+prompt {
+    enabled:                    true;
+    padding:                    12px 16px;
+    border-radius:              4px;
+    background-color:           @background-alt;
+    text-color:                 @selected;
+}
+
+/* Search / URL Input Box */
+entry {
+    enabled:                    true;
+    expand:                     true;
+    padding:                    12px 16px;
+    border-radius:              4px;
+    background-color:           @background-alt;
+    text-color:                 @foreground;
+    cursor:                     text;
+    placeholder:                "Paste YouTube/SoundCloud URL here...";
+    placeholder-color:          #888888;
+}
+
+/*****----- Listview (Hidden for URL input) -----*****/
+listview {
+    enabled:                    true;
+    lines:                      0;
+    fixed-height:               false;
+    spacing:                    0px;
+    background-color:           transparent;
+}
