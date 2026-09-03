@@ -16,7 +16,7 @@ import yt_dlp
 from yt_dlp.utils import DownloadError
 
 MEDIA_DIR = Path("./media")
-COOKIES_DIR = Path("../")
+#COOKIES_DIR = Path("../")
 DB_PATH = MEDIA_DIR / "playlist_metadata.duckdb"
 
 def init_db(db_path: Path):
@@ -91,11 +91,11 @@ if not url_type:
     print("Invalid or unsupported URL.")
     exit(1)
 
-cookies_path = COOKIES_DIR / ("soundcloud.com_cookies.txt" if url_type == "soundcloud" else "www.youtube.com_cookies.txt")
+#cookies_path = COOKIES_DIR / ("soundcloud.com_cookies.txt" if url_type == "soundcloud" else "www.youtube.com_cookies.txt")
 
-if not cookies_path.exists():
-    print(f"Cookies file not found at {cookies_path}.")
-    exit(1)
+#if not cookies_path.exists():
+#    print(f"Cookies file not found at {cookies_path}.")
+#    exit(1)
 
 ydl_opts = {
     #"cookiefile": str(cookies_path),
