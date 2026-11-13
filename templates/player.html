@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{ title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/static/bootstrap5/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/bootstrap5/icons/bootstrap-icons.css" />
+    <link rel="stylesheet" href="/static/playlistDL.css" />
+  </head>
+  <body>
+    <!-- Top Navigation Bar -->
+    <nav class="navbar app-navbar px-3 mb-3">
+      <div class="d-flex align-items-center">
+        <button
+          id="menu-toggle-btn"
+          class="btn btn-sm app-menu-toggle d-inline-flex align-items-center gap-2"
+          type="button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#mainMenuOffcanvas"
+          aria-controls="mainMenuOffcanvas"
+          title="Playlists"
+        >
+          <i class="bi bi-collection-play fs-6"></i>
+          <span class="d-none d-sm-inline">Playlists</span>
+        </button>
+      </div>
+
+      <div class="d-flex justify-content-center align-items-center min-w-0">
+        <a href="/" class="navbar-brand m-0 p-0 d-flex align-items-center justify-content-center">
+          <img src="/static/logo.light.png" alt="PlaylistDL - AV Studying Tool" class="navbar-logo" />
+        </a>
+      </div>
+
+      <div class="d-flex align-items-center justify-content-end gap-2">
+        <button
+          id="active-download-btn"
+          class="btn btn-sm btn-info text-dark d-none align-items-center gap-1 py-1 px-2 fw-semibold"
+          type="button"
+          data-bs-toggle="modal"
+          data-bs-target="#downloadModal"
+          title="Downloads in progress"
+        >
+          <span class="spinner-border spinner-border-sm" role="status"></span>
+          <span id="active-download-text">Downloading...</span>
+        </button>
+
+        <button
+          id="download-nav-btn"
+          class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-2"
+          type="button"
+          data-bs-toggle="modal"
+          data-bs-target="#downloadModal"
+          title="Download Playlist or Media"
+        >
+          <i class="bi bi-cloud-arrow-down-fill"></i>
+          <span class="d-none d-sm-inline">Download</span>
+        </button>
+
+        <span id="user-display" class="text-light small"></span>
+      </div>
+    </nav>
+
+    <!-- Main Menu Drawer (Separated from Loaded Playlist) -->
+    <div
+      class="offcanvas offcanvas-start app-offcanvas"
+      tabindex="-1"
+      id="mainMenuOffcanvas"
+      aria-labelledby="mainMenuLabel"
+    >
+      <div class="offcanvas-header app-panel-header">
+        <h6 class="offcanvas-title fw-bold d-flex align-items-center gap-2 mb-0" id="mainMenuLabel">
+          <i class="bi bi-collection-play text-info"></i>
+          <span>Playlists</span>
+        </h6>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="offcanvas"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="offcanvas-body">
+        <button
+          class="btn btn-sm btn-outline-info w-100 mb-3 d-flex align-items-center justify-content-center gap-2 py-2"
+          type="button"
+          data-bs-toggle="modal"
+          data-bs-target="#downloadModal"
+        >
+          <i class="bi bi-cloud-arrow-down-fill fs-6"></i>
+          <span class="fw-semibold">Download New Playlist</span>
+        </button>
+
+        <div class="input-group input-group-sm mb-3">
+          <span class="input-group-text app-input-addon"><i class="bi bi-search"></i></span>
+          <input
+            type="text"
+            id="searchPodcast"
+            class="form-control app-input"
+            placeholder="Filter playlists..."
+          />
+        </div>
+        <ul class="list-unstyled menu_media ps-1" id="playlists">
+{% for group in Files %}
+  {% set group_id = "dir_collapse_" ~ loop.index %}
+          <!-- Parent Folder Header (Clickable Trigger) -->
+          <li class="mt-2 mb-1 border-0">
+            <a
+              class="text-decoration-none app-group-link fw-bold d-inline-flex align-items-center gap-2 cursor-pointer"
+              data-bs-toggle="collapse"
+              href="#{{ group_id }}"
+              role="button"
+              aria-expanded="false"
+              aria-controls="{{ group_id }}"
+            >
+              <i class="bi bi-folder-fill app-folder-icon"></i>
+              <span>{{ group.label }}</span>
+              <i class="bi bi-chevron-down ms-1 small opacity-75"></i>
+            </a>
+          </li>
+          <!-- Collapsible Child Subdirectories / Playlists -->
+          <li class="collapse border-0" id="{{ group_id }}">
+            <ul class="list-unstyled ps-3 app-group-children ms-2">
+  {% for item in group.feed_items %}
+              <li class="d-flex justify-content-between align-items-center py-1 rounded">
+                <a
+                  href="#"
+                  class="{{ group.tag }} feed-link text-decoration-none d-inline-flex align-items-center gap-2 w-100"
+                  data-xml="{{ item.xml }}"
+                >
+                  <i class="bi bi-rss app-accent-icon"></i>
+                  <span class="text-break">{{ item.label }}</span>
+                </a>
+              </li>
+  {% endfor %}
+            </ul>
+          </li>
+{% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <!-- Main Workspace: Image-only landing until a playlist is loaded -->
+    <div class="container-fluid px-3 pb-3">
+      <div id="empty-workspace" class="d-flex justify-content-center align-items-center py-2">
+        <div
+          id="study-hall-banner"
+          class="study-hall-banner app-panel overflow-hidden"
+          role="button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#mainMenuOffcanvas"
+          title="Click to browse playlists"
+        >
+          <img src="/DLplaylist.png" alt="PlaylistDL | Study Hall" class="img-fluid d-block" />
+        </div>
+      </div>
+
+      <div id="workspace-view" class="row g-3 d-none">
+        <!-- Loaded Playlist Panel -->
+        <div class="col-lg-4 col-md-5">
+          <div id="loaded-playlist-panel" class="app-panel h-100 d-flex flex-column">
+            <div class="app-panel-header d-flex justify-content-between align-items-center">
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-list-ol app-accent-icon"></i>
+                <small class="fw-bold text-uppercase tracking-wide">Loaded Playlist</small>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <a
+                  id="rss-link"
+                  href="#"
+                  class="btn btn-sm btn-outline-info py-0 px-2 disabled"
+                  title="RSS Feed"
+                  aria-disabled="true"
+                >
+                  <i class="bi bi-rss-fill"></i>
+                </a>
+                <button
+                  id="play-all-btn"
+                  class="btn btn-sm app-btn-primary py-0 px-2"
+                  onclick="playAll()"
+                  disabled
+                >
+                  <i class="bi bi-play-fill"></i> Play All
+                </button>
+              </div>
+            </div>
+
+            <div class="p-3 border-bottom app-border">
+              <div id="info"></div>
+            </div>
+
+            <!-- Playlist Action Tabs -->
+            <ul class="nav nav-tabs app-panel-tabs px-2 pt-2 border-bottom app-border" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link active py-1 px-2 small"
+                  id="tab-tracks-btn"
+                  data-bs-toggle="tab"
+                  data-bs-target="#tab-tracks-pane"
+                  type="button"
+                  role="tab"
+                >
+                  <i class="bi bi-list-ul me-1"></i>Tracks
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link py-1 px-2 small"
+                  id="tab-search-btn"
+                  data-bs-toggle="tab"
+                  data-bs-target="#tab-search-pane"
+                  type="button"
+                  role="tab"
+                >
+                  <i class="bi bi-search me-1"></i>Search
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link py-1 px-2 small"
+                  id="tab-chat-btn"
+                  data-bs-toggle="tab"
+                  data-bs-target="#tab-chat-pane"
+                  type="button"
+                  role="tab"
+                >
+                  <i class="bi bi-robot me-1"></i>Chat AI
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link py-1 px-2 small d-inline-flex align-items-center"
+                  id="tab-transcript-btn"
+                  data-bs-toggle="tab"
+                  data-bs-target="#tab-transcript-pane"
+                  type="button"
+                  role="tab"
+                >
+                  <i class="bi bi-file-text me-1"></i>Transcript
+                  <span id="transcript-lang-badge" class="badge app-badge ms-1 d-none" style="font-size: 0.65rem; padding: 2px 4px;"></span>
+                </button>
+              </li>
+            </ul>
+
+            <div class="tab-content flex-grow-1 overflow-auto">
+              <!-- Tracks Tab -->
+              <div class="tab-pane fade show active h-100" id="tab-tracks-pane" role="tabpanel">
+                <ul id="playlist" class="menu_media list-group list-group-flush"></ul>
+              </div>
+
+              <!-- Vector Search Tab -->
+              <div class="tab-pane fade h-100 p-2" id="tab-search-pane" role="tabpanel">
+                <div class="input-group input-group-sm mb-2">
+                  <input
+                    type="text"
+                    id="vector-search-input"
+                    class="form-control form-control-sm app-input"
+                    placeholder="Search transcripts by concept..."
+                  />
+                  <button
+                    class="btn btn-sm app-btn-primary"
+                    type="button"
+                    id="vector-search-btn"
+                    onclick="performVectorSearch()"
+                  >
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+                <div id="vector-search-status" class="small app-muted mb-2 px-1 d-none"></div>
+                <div id="vector-search-results" class="list-group list-group-flush border-top app-border pt-1">
+                  <small class="app-muted d-block text-center py-4">Enter a concept or question to find matching moments in this playlist.</small>
+                </div>
+              </div>
+
+              <!-- Chat AI Tab -->
+              <div class="tab-pane fade h-100 d-flex flex-column p-2" id="tab-chat-pane" role="tabpanel">
+                <div id="chat-messages" class="flex-grow-1 overflow-auto mb-2 pe-1" style="max-height: 380px;">
+                  <div class="app-chat-msg assistant mb-2 p-2 rounded">
+                    <div class="fw-bold small text-info mb-1">
+                      <i class="bi bi-robot me-1"></i>Study Assistant
+                    </div>
+                    <div class="small">Ask questions about this playlist's lectures. I will synthesize answers with clickable timestamps!</div>
+                  </div>
+                </div>
+                <div class="input-group input-group-sm mt-auto">
+                  <input
+                    type="text"
+                    id="chat-input"
+                    class="form-control form-control-sm app-input"
+                    placeholder="Ask about this playlist..."
+                  />
+                  <button
+                    class="btn btn-sm app-btn-primary"
+                    id="chat-send-btn"
+                    type="button"
+                    onclick="sendPlaylistChatMessage()"
+                  >
+                    <i class="bi bi-send"></i>
+                  </button>
+                </div>
+                <div id="chat-status" class="small text-info mt-1 d-none">Thinking...</div>
+              </div>
+
+              <!-- Transcript Tab -->
+              <div class="tab-pane fade h-100 p-2" id="tab-transcript-pane" role="tabpanel">
+                <div id="transcript-content">
+                  <small class="app-muted d-block text-center py-3">Select a track to read its timestamped transcript.</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Media Player & Timestamped Notes Panel -->
+        <div class="col-lg-8 col-md-7">
+          <div id="media-overlay" class="app-panel">
+            <div class="player-header">
+              <div class="d-flex align-items-center justify-content-between flex-grow-1 min-w-0 me-2">
+                <small id="now-playing-title" class="text-truncate fw-bold">Nothing playing</small>
+                <span id="media-views-badge" class="badge app-badge ms-2" title="Total Views">
+                  <i class="bi bi-eye"></i> <span id="view-count">0</span>
+                </span>
+              </div>
+              <div>
+                <button
+                  class="btn btn-sm btn-outline-info"
+                  data-bs-toggle="modal"
+                  data-bs-target="#metadataModal"
+                  title="Track Metadata"
+                >
+                  <i class="bi bi-info-circle"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Media Element Container -->
+            <div id="media-content"></div>
+
+            <!-- Timestamped Notes Component -->
+            <div id="media-notes-section" class="p-3 border-top app-border">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <small class="fw-bold d-flex align-items-center gap-2">
+                  <i class="bi bi-journal-text app-accent-icon"></i>
+                  <span>Notes</span>
+                </small>
+                <button
+                  class="btn btn-sm btn-link text-info text-decoration-none p-0"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#notesCollapse"
+                >
+                  Toggle Notes
+                </button>
+              </div>
+              <div class="collapse show" id="notesCollapse">
+                <div id="notes-list" class="mb-2 pe-1" style="max-height: 200px; overflow-y: auto;">
+                  <small class="app-muted d-block p-1">Select a track to view or add timestamped notes.</small>
+                </div>
+                <div class="input-group input-group-sm">
+                  <span
+                    id="note-current-time"
+                    class="input-group-text app-input-addon font-monospace"
+                    title="Current video timestamp"
+                  >0:00</span>
+                  <input
+                    type="text"
+                    id="note-input"
+                    class="form-control form-control-sm app-input"
+                    placeholder="Take a note at current time..."
+                    disabled
+                  />
+                  <button
+                    id="add-note-btn"
+                    class="btn btn-sm app-btn-primary"
+                    type="button"
+                    onclick="submitNote()"
+                    disabled
+                  >Add</button>
+                </div>
+                <div id="notes-feedback" class="text-danger small mt-1 d-none"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metadata Modal -->
+    <div class="modal fade" id="metadataModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div>
+              <h5 class="modal-title mb-0">Track Metadata</h5>
+              <small id="pubdate-wrapper" class="text-muted d-none">
+                Downloaded: <span id="pubdate"></span>
+              </small>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="metadataModalBody">
+            <p class="text-muted mb-0">Select a track to view metadata.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Download Media & Playlist Modal -->
+    <div class="modal fade" id="downloadModal" tabindex="-1" aria-labelledby="downloadModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content app-panel">
+          <div class="modal-header app-panel-header">
+            <h5 class="modal-title d-flex align-items-center gap-2 mb-0" id="downloadModalLabel">
+              <i class="bi bi-cloud-arrow-down-fill text-info"></i>
+              <span>Download Media / Playlist</span>
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-3 p-md-4">
+            <!-- URL Input Form -->
+            <form id="download-form" onsubmit="handleDownloadSubmit(event)">
+              <div class="mb-3">
+                <label for="download-url-input" class="form-label small text-uppercase text-light opacity-75 fw-bold">
+                  SoundCloud or YouTube URL
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text app-input-addon"><i class="bi bi-link-45deg"></i></span>
+                  <input
+                    type="url"
+                    class="form-control app-input"
+                    id="download-url-input"
+                    placeholder="https://soundcloud.com/... or https://www.youtube.com/playlist?list=..."
+                    required
+                  />
+                  <button class="btn app-btn-primary px-4 fw-bold" type="submit" id="download-submit-btn">
+                    <i class="bi bi-download me-1"></i> Download
+                  </button>
+                </div>
+                <div class="form-text text-light opacity-50 small mt-1">
+                  Supports playlists, albums, and individual tracks from SoundCloud, YouTube, and other media sources.
+                </div>
+              </div>
+
+              <div class="form-check form-switch mb-4">
+                <input class="form-check-input" type="checkbox" role="switch" id="auto-transcribe-check" />
+                <label class="form-check-label small text-light" for="auto-transcribe-check">
+                  <span class="fw-semibold">Auto-transcribe with Whisper & generate vector embeddings</span>
+                  <span class="d-block text-light opacity-75" style="font-size: 0.8rem;">
+                    Enables clickable timestamp transcripts, semantic vector search, and Ollama AI assistant chat.
+                  </span>
+                </label>
+              </div>
+            </form>
+
+            <!-- Tasks / Progress Section -->
+            <div class="mt-4 border-top app-border pt-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="small text-uppercase text-secondary fw-bold mb-0">Active & Recent Downloads</h6>
+                <button class="btn btn-sm btn-link text-info text-decoration-none p-0" type="button" onclick="refreshDownloadTasks()">
+                  <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+              </div>
+              <div id="download-tasks-container" class="d-flex flex-column gap-2" style="max-height: 300px; overflow-y: auto;">
+                <div class="text-secondary small py-3 text-center" id="no-tasks-msg">
+                  No downloads queued or running. Enter a URL above to start!
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+      <div id="downloadToast" class="toast app-panel border-info" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header app-panel-header text-light">
+          <i class="bi bi-check-circle-fill text-success me-2"></i>
+          <strong class="me-auto" id="toast-title">Download Completed</strong>
+          <small class="text-secondary" id="toast-time">Just now</small>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body d-flex justify-content-between align-items-center">
+          <span id="toast-message" class="text-light small">Playlist downloaded successfully.</span>
+          <button id="toast-load-btn" class="btn btn-sm btn-info py-0 px-2 text-dark fw-bold ms-2 d-none">
+            Load
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bootstrap5/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/playlistDL.js"></script>
+  </body>
+</html>
